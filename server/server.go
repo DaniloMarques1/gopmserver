@@ -42,7 +42,7 @@ func (server *Server) Init() {
 func (server *Server) Start() {
 	port := os.Getenv("PORT")
 	log.Printf("Starting server on port %v\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, server.router)) // TODO change port
+	log.Fatal(http.ListenAndServe(":"+port, server.router))
 }
 
 func middleware(next http.Handler) http.Handler {
