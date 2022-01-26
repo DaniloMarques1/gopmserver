@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/danilomarques1/gopmserver/handler"
 	"github.com/danilomarques1/gopmserver/repository"
@@ -33,11 +34,13 @@ func (server *Server) Init() {
 	server.router.Use(middleware)
 	masterRepository := repository.NewMasterRepository(server.db)
 	masterService := service.NewMasterService(masterRepository)
-	_ = handler.NewMasterHandler(masterService)
+	masterHandler := handler.NewMasterHandler(masterService)
+
+	server.router.Post("/master", masterHandler.Save) 
 }
 
 func (server *Server) Start() {
-	port := "8080"
+	port := os.Getenv("PORT")
 	log.Printf("Starting server on port %v\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, server.router)) // TODO change port
 }
