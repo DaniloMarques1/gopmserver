@@ -13,6 +13,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const tables = `
+	CREATE TABLE IF NOT EXISTS master(
+		id VARCHAR(32) PRIMARY KEY,
+		email VARCHAR(100) UNIQUE NOT NULL,
+		pwd_hash VARCHAR(100) NOT NULL
+	);
+`
+
 type Server struct {
 	router *chi.Mux
 	db     *sql.DB
@@ -31,12 +39,16 @@ func NewServer() (*Server, error) {
 }
 
 func (server *Server) Init() {
+	if _, err := server.db.Exec(tables); err != nil {
+		log.Fatal(err)
+	}
+
 	server.router.Use(middleware)
 	masterRepository := repository.NewMasterRepository(server.db)
 	masterService := service.NewMasterService(masterRepository)
 	masterHandler := handler.NewMasterHandler(masterService)
 
-	server.router.Post("/master", masterHandler.Save) 
+	server.router.Post("/master", masterHandler.Save)
 }
 
 func (server *Server) Start() {

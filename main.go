@@ -1,9 +1,9 @@
 package main
 
 import (
-	"log"
 	"github.com/danilomarques1/gopmserver/server"
 	"github.com/joho/godotenv"
+	"log"
 )
 
 func main() {

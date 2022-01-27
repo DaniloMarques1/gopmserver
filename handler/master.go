@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 
+	"github.com/danilomarques1/gopmserver/dto"
 	"github.com/danilomarques1/gopmserver/service"
+	"github.com/danilomarques1/gopmserver/util"
 )
 
 type MasterHandler struct {
@@ -15,5 +19,20 @@ func NewMasterHandler(masterService *service.MasterService) *MasterHandler {
 }
 
 func (mh *MasterHandler) Save(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, world!\n"))
+	var masterDto dto.MasterRequest
+	if err := json.NewDecoder(r.Body).Decode(&masterDto); err != nil {
+		// TODO returns 400
+		log.Printf("ERR parsing body: %v\n", err)
+		util.RespondJSON(w, "Invalid body", http.StatusBadRequest)
+		return
+	}
+
+	if err := mh.masterService.Save(&masterDto); err != nil {
+		// TODO
+		log.Printf("Error saving %v\n", err)
+		util.RespondERR(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
