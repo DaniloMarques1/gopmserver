@@ -37,7 +37,7 @@ func (mh *MasterHandler) Save(w http.ResponseWriter, r *http.Request) {
 
 func (mh *MasterHandler) Session(w http.ResponseWriter, r *http.Request) {
 	var sessionDto dto.SessionRequestDto
-	if err := json.NewDecoder(r.Body).Decode(&sessionDto);  err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&sessionDto); err != nil {
 		log.Printf("ERR parsing body: %v\n", err)
 		util.RespondJSON(w, "Invalid body", http.StatusBadRequest)
 		return
