@@ -1,6 +1,15 @@
 package dto
 
-type MasterRequest struct {
+type MasterRequestDto struct {
 	Email string `json:"email"`
 	Pwd   string `json:"pwd"`
+}
+
+type SessionRequestDto struct {
+	Email string `json:"email"`
+	Pwd   string `json:"pwd"`
+}
+
+type SessionResponseDto struct {
+	Token string `json:"token"`
 }

@@ -49,6 +49,7 @@ func (server *Server) Init() {
 	masterHandler := handler.NewMasterHandler(masterService)
 
 	server.router.Post("/master", masterHandler.Save)
+	server.router.Post("/session", masterHandler.Session)
 }
 
 func (server *Server) Start() {

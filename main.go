@@ -1,10 +1,18 @@
 package main
 
 import (
-	"github.com/danilomarques1/gopmserver/server"
-	"github.com/joho/godotenv"
 	"log"
+
+	"github.com/danilomarques1/gopmserver/server"
+
+	"github.com/joho/godotenv"
+	"github.com/golang-jwt/jwt"
 )
+
+type TokenClaims struct {
+	Id string
+	jwt.Claims
+}
 
 func main() {
 	if err := godotenv.Load(); err != nil {

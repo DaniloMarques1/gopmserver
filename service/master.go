@@ -20,7 +20,7 @@ func NewMasterService(repository model.MasterRepository) *MasterService {
 	return &MasterService{masterRepository: repository}
 }
 
-func (ms *MasterService) Save(masterDto *dto.MasterRequest) error {
+func (ms *MasterService) Save(masterDto *dto.MasterRequestDto) error {
 	if _, err := ms.masterRepository.FindByEmail(masterDto.Email); err == nil {
 		return util.NewApiError("E-mail already in use", http.StatusBadRequest)
 	}
@@ -39,4 +39,21 @@ func (ms *MasterService) Save(masterDto *dto.MasterRequest) error {
 		return util.NewApiError(err.Error(), http.StatusInternalServerError)
 	}
 	return nil
+}
+
+func (ms *MasterService) Session(sessionDto *dto.SessionRequestDto) (*dto.SessionResponseDto, error) {
+	master, err := ms.masterRepository.FindByEmail(sessionDto.Email)
+	if err != nil {
+		return nil, err
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(master.PwdHash), []byte(sessionDto.Pwd)); err != nil {
+		return nil, util.NewApiError("Invalid password", http.StatusUnauthorized)
+	}
+
+	token, err := util.GenToken(master.Id)
+	if err != nil {
+		return nil, err
+	}
+	response := dto.SessionResponseDto{Token: token}
+	return &response, nil
 }
