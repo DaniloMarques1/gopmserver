@@ -9,6 +9,7 @@ import (
 	"github.com/danilomarques1/gopmserver/handler"
 	"github.com/danilomarques1/gopmserver/repository"
 	"github.com/danilomarques1/gopmserver/service"
+	"github.com/danilomarques1/gopmserver/util"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -50,6 +51,12 @@ func (server *Server) Init() {
 
 	server.router.Post("/master", masterHandler.Save)
 	server.router.Post("/session", masterHandler.Session)
+
+	// handler for only authorized routes
+	authGroup := server.router.Group(nil)
+	authGroup.Use(authMiddleware)
+
+	authGroup.Get("/password", masterHandler.GetPassword)
 }
 
 func (server *Server) Start() {
@@ -61,6 +68,23 @@ func (server *Server) Start() {
 func middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
+}
+
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token, err := util.GetTokenFromHeader(r.Header.Get("Authorization"))
+		if err != nil {
+			util.RespondERR(w, err)
+			return
+		}
+		id, err := util.VerifyToken(token)
+		if err != nil {
+			util.RespondERR(w, err)
+			return
+		}
+		r.Header.Add("userId", id)
 		next.ServeHTTP(w, r)
 	})
 }

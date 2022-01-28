@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -49,4 +50,10 @@ func (mh *MasterHandler) Session(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+func (mg *MasterHandler) GetPassword(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Alo chegou no handler")
+	w.WriteHeader(201)
+	w.Write([]byte("Hello\n"))
 }
