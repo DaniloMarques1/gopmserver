@@ -23,8 +23,10 @@ const tables = `
 
 	CREATE TABLE IF NOT EXISTS password(
 		id VARCHAR(32) PRIMARY KEY,
-		key VARCHAR(40) NOT NULL,
-		pwd VARCHAR(30) NOT NULL
+		key VARCHAR(40) NOT NULL UNIQUE,
+		pwd VARCHAR(30) NOT NULL,
+		master_id VARCHAR(32) NOT NULL,
+		FOREIGN KEY(master_id) REFERENCES master(id) 
 	);
 `
 
@@ -67,9 +69,7 @@ func (server *Server) Init() {
 	authGroup.Use(authMiddleware)
 
 	authGroup.Post("/password", pwdHandler.Save)
-	//authGroup.Post("/password", master
-
-	//authGroup.Get("/password", masterHandler.GetPassword)
+	authGroup.Get("/password/{key}", pwdHandler.FindByKey)
 }
 
 func (server *Server) Start() {

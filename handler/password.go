@@ -7,6 +7,8 @@ import (
 	"github.com/danilomarques1/gopmserver/dto"
 	"github.com/danilomarques1/gopmserver/service"
 	"github.com/danilomarques1/gopmserver/util"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type PasswordHandler struct {
@@ -23,10 +25,22 @@ func (ph *PasswordHandler) Save(w http.ResponseWriter, r *http.Request) {
 		util.RespondJSON(w, "Invalid json", http.StatusBadRequest)
 		return
 	}
-	if err := ph.pwdService.Save(pwdDto); err != nil {
+	masterId := r.Header.Get("userId")
+	if err := ph.pwdService.Save(masterId, pwdDto); err != nil {
 		util.RespondERR(w, err)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (ph *PasswordHandler) FindByKey(w http.ResponseWriter, r *http.Request) {
+	masterId := r.Header.Get("userId")
+	key := chi.URLParam(r, "key")
+	response, err := ph.pwdService.FindByKey(masterId, key)
+	if err != nil {
+		util.RespondERR(w, err)
+		return
+	}
+	json.NewEncoder(w).Encode(response)
 }
