@@ -20,6 +20,12 @@ const tables = `
 		email VARCHAR(100) UNIQUE NOT NULL,
 		pwd_hash VARCHAR(100) NOT NULL
 	);
+
+	CREATE TABLE IF NOT EXISTS password(
+		id VARCHAR(32) PRIMARY KEY,
+		key VARCHAR(40) NOT NULL,
+		pwd VARCHAR(30) NOT NULL
+	);
 `
 
 type Server struct {
@@ -49,6 +55,10 @@ func (server *Server) Init() {
 	masterService := service.NewMasterService(masterRepository)
 	masterHandler := handler.NewMasterHandler(masterService)
 
+	pwdRepository := repository.NewPasswordRepository(server.db)
+	pwdService := service.NewPasswordService(pwdRepository)
+	pwdHandler := handler.NewPasswordHandler(pwdService)
+
 	server.router.Post("/master", masterHandler.Save)
 	server.router.Post("/session", masterHandler.Session)
 
@@ -56,7 +66,10 @@ func (server *Server) Init() {
 	authGroup := server.router.Group(nil)
 	authGroup.Use(authMiddleware)
 
-	authGroup.Get("/password", masterHandler.GetPassword)
+	authGroup.Post("/password", pwdHandler.Save)
+	//authGroup.Post("/password", master
+
+	//authGroup.Get("/password", masterHandler.GetPassword)
 }
 
 func (server *Server) Start() {

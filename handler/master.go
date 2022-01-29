@@ -53,7 +53,8 @@ func (mh *MasterHandler) Session(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mg *MasterHandler) GetPassword(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Alo chegou no handler")
-	w.WriteHeader(201)
+	id := r.Header.Get("userId")
+	fmt.Println(id)
+
 	w.Write([]byte("Hello\n"))
 }
