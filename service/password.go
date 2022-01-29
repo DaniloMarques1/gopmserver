@@ -40,11 +40,28 @@ func (ps *PasswordService) FindByKey(masterId, key string) (*dto.PasswordRespons
 	if err != nil {
 		return nil, err
 	}
-	response := dto.PasswordResponseDto{
+	return &dto.PasswordResponseDto{
 		Id:  password.Id,
 		Key: password.Key,
 		Pwd: password.Pwd,
-	}
+	}, nil
+}
 
-	return &response, nil
+func (ps *PasswordService) Keys(masterId string) (*dto.PasswordKeysDto, error) {
+	keys, err := ps.pwdRepository.Keys(masterId)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.PasswordKeysDto{Keys: keys}, nil
+}
+
+func (ps *PasswordService) RemoveByKey(masterId, key string) error {
+	password, err := ps.pwdRepository.FindByKey(masterId, key)
+	if err != nil {
+		return err
+	}
+	if err := ps.pwdRepository.RemoveByKey(masterId, password.Key); err != nil {
+		return err
+	}
+	return nil
 }

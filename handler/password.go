@@ -44,3 +44,24 @@ func (ph *PasswordHandler) FindByKey(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(response)
 }
+
+func (ph *PasswordHandler) RemoveByKey(w http.ResponseWriter, r *http.Request) {
+	masterId := r.Header.Get("userId")
+	key := chi.URLParam(r, "key")
+	if err := ph.pwdService.RemoveByKey(masterId, key); err != nil {
+		util.RespondERR(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (ph *PasswordHandler) Keys(w http.ResponseWriter, r *http.Request) {
+	masterId := r.Header.Get("userId")
+	response, err := ph.pwdService.Keys(masterId)
+	if err != nil {
+		util.RespondERR(w, err)
+		return
+	}
+	json.NewEncoder(w).Encode(response)
+}

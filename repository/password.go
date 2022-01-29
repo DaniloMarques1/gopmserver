@@ -2,8 +2,11 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
+	"net/http"
 
 	"github.com/danilomarques1/gopmserver/model"
+	"github.com/danilomarques1/gopmserver/util"
 )
 
 type PasswordRepositoryImpl struct {
@@ -38,6 +41,9 @@ func (pr *PasswordRepositoryImpl) FindByKey(masterId, key string) (*model.Passwo
 	var password model.Password
 	err = stmt.QueryRow(key, masterId).Scan(&password.Id, &password.Key, &password.Pwd)
 	if err != nil {
+		if errors.Is(sql.ErrNoRows, err) {
+			return nil, util.NewApiError("No password found with the given key", http.StatusNotFound)
+		}
 		return nil, err
 	}
 

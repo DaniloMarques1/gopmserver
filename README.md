@@ -28,6 +28,6 @@ curl -X POST -d '{ "key": "your_password_key", "pwd": "some_password" }' -H \
 ### Get a password
 
 ```console
-curl -X POST -d -H "Content-type: application/json" -H \
+curl -H "Content-type: application/json" -H \
 "Authorization: Bearer {token_goes_here}" localhost:8080/password/{passoword_key_goes_here} -v
 ```

@@ -7,6 +7,8 @@ type Master struct {
 }
 
 type MasterRepository interface {
+	// store a new master
 	Save(*Master) error
+	// find a master using the email
 	FindByEmail(string) (*Master, error)
 }
