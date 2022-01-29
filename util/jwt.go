@@ -14,14 +14,14 @@ type TokenClaims struct {
 	jwt.StandardClaims
 }
 
-const TOKEN_EXPIRATION = 3600
+const TOKEN_EXPIRATION_TIME = 3600
 
 // receive the users id and return a token and a possible error
 func GenToken(id string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
 		Id: id,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Unix() + TOKEN_EXPIRATION,
+			ExpiresAt: time.Now().Unix() + TOKEN_EXPIRATION_TIME,
 			Issuer:    "gopmserver",
 		},
 	})
