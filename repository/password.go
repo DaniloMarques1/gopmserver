@@ -45,17 +45,55 @@ func (pr *PasswordRepositoryImpl) FindByKey(masterId, key string) (*model.Passwo
 }
 
 func (pr *PasswordRepositoryImpl) FindAll(masterId string) ([]model.Password, error) {
-	stmt, err := pr.db.Prepare("select id, key, pwd from password")
+	stmt, err := pr.db.Prepare("select id, key, pwd from password where master_id = $1")
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	return nil, nil
+	rows, err := stmt.Query(masterId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var passwords []model.Password
+	for rows.Next() {
+		var password model.Password
+		err := rows.Scan(&password.Id, &password.Key, &password.Pwd)
+		if err != nil {
+			return nil, err
+		}
+		passwords = append(passwords, password)
+	}
+
+	return passwords, nil
 }
 
 func (pr *PasswordRepositoryImpl) Keys(masterId string) ([]string, error) {
-	return nil, nil
+	stmt, err := pr.db.Prepare("select key from password where master_id = $1")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(masterId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var keys []string
+	for rows.Next() {
+		var key string
+		err := rows.Scan(&key)
+		if err != nil {
+			return nil, err
+		}
+		keys = append(keys, key)
+	}
+
+	return keys, nil
 }
 
 func (pr *PasswordRepositoryImpl) RemoveByKey(masterId, key string) error {
