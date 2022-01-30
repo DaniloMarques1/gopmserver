@@ -71,6 +71,7 @@ func (server *Server) Init() {
 	authGroup.Post("/password", pwdHandler.Save)
 	authGroup.Get("/password/{key}", pwdHandler.FindByKey)
 	authGroup.Get("/keys", pwdHandler.Keys)
+	authGroup.Delete("/password/{key}", pwdHandler.RemoveByKey)
 }
 
 func (server *Server) Start() {
