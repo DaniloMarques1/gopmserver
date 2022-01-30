@@ -2,7 +2,11 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
+	"net/http"
+
 	"github.com/danilomarques1/gopmserver/model"
+	"github.com/danilomarques1/gopmserver/util"
 )
 
 type MasterRepositoryImpl struct {
@@ -36,6 +40,9 @@ func (mr *MasterRepositoryImpl) FindByEmail(email string) (*model.Master, error)
 
 	var master model.Master
 	if err := stmt.QueryRow(email).Scan(&master.Id, &master.Email, &master.PwdHash); err != nil {
+		if errors.Is(sql.ErrNoRows, err) {
+			return nil, util.NewApiError("Invalid email", http.StatusNotFound)
+		}
 		return nil, err
 	}
 	return &master, nil
