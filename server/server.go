@@ -96,7 +96,8 @@ func authMiddleware(next http.Handler) http.Handler {
 		}
 		id, err := util.VerifyToken(token)
 		if err != nil {
-			util.RespondERR(w, err)
+			errToBeReturned := util.NewApiError("Invalid token", http.StatusUnauthorized)
+			util.RespondERR(w, errToBeReturned)
 			return
 		}
 		r.Header.Add("userId", id)
