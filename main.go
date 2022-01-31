@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
+		log.Printf("Error loading env variable %v\n", err)
 	}
 
 	s, err := server.NewServer()
