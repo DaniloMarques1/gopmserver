@@ -13,4 +13,5 @@ type PasswordInterface interface {
 	FindAll(masterId string) ([]Password, error)
 	Keys(masterId string) ([]string, error)
 	RemoveByKey(masterId string, key string) error
+	UpdateByKey(masterId string, password *Password) error
 }

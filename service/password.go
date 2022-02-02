@@ -65,3 +65,15 @@ func (ps *PasswordService) RemoveByKey(masterId, key string) error {
 	}
 	return nil
 }
+
+func (ps *PasswordService) UpdateByKey(masterId string, pwdDto *dto.PasswordUpdateRequestDto) error {
+	password, err := ps.pwdRepository.FindByKey(masterId, pwdDto.Key)
+	if err != nil {
+		return err
+	}
+	password.Pwd = pwdDto.Pwd
+	if err := ps.pwdRepository.UpdateByKey(masterId, password); err != nil {
+		return err
+	}
+	return nil
+}

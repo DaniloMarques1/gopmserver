@@ -65,3 +65,17 @@ func (ph *PasswordHandler) Keys(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(response)
 }
+
+func (ph *PasswordHandler) UpdateByKey(w http.ResponseWriter, r *http.Request) {
+	var pwdDto dto.PasswordUpdateRequestDto
+	if err := json.NewDecoder(r.Body).Decode(&pwdDto); err != nil {
+		util.RespondJSON(w, "Invalid json", http.StatusBadRequest)
+		return
+	}
+	masterId := r.Header.Get("userId")
+	if err := ph.pwdService.UpdateByKey(masterId, &pwdDto); err != nil {
+		util.RespondERR(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}

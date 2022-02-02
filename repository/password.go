@@ -116,3 +116,16 @@ func (pr *PasswordRepositoryImpl) RemoveByKey(masterId, key string) error {
 
 	return nil
 }
+
+func (pr *PasswordRepositoryImpl) UpdateByKey(masterId string, password *model.Password) error {
+	stmt, err := pr.db.Prepare("update password set pwd = $1 where master_id = $2 and id = $3")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	if _, err := stmt.Exec(password.Pwd, masterId, password.Id); err != nil {
+		return err
+	}
+
+	return nil
+}
