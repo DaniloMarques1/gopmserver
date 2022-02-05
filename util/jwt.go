@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -18,6 +19,9 @@ const TOKEN_EXPIRATION_TIME = 3600
 
 // receive the users id and return a token and a possible error
 func GenToken(id string) (string, error) {
+	if len(id) == 0 {
+		return "", errors.New("Invalid id for generating the token")
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
 		Id: id,
 		StandardClaims: jwt.StandardClaims{
@@ -50,6 +54,8 @@ func VerifyToken(tokenStr string) (string, error) {
 
 	return tokenClaims.Id, nil
 }
+
+// TODO change the name because i do get the toke from the header.
 
 // will receive the bearer token like Bearer {token}
 // and return only the token part
