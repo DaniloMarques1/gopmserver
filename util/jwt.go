@@ -55,11 +55,9 @@ func VerifyToken(tokenStr string) (string, error) {
 	return tokenClaims.Id, nil
 }
 
-// TODO change the name because i do get the toke from the header.
-
 // will receive the bearer token like Bearer {token}
 // and return only the token part
-func GetTokenFromHeader(authHeader string) (string, error) {
+func GetTokenFromBearerString(authHeader string) (string, error) {
 	strSlice := strings.Split(authHeader, " ")
 	if len(strSlice) < 2 {
 		return "", fmt.Errorf("No token provided")

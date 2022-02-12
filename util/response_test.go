@@ -58,39 +58,40 @@ func TestRespondJSON(t *testing.T) {
 	}
 }
 
-func TestRespondERR(t *testing.T) {
-	cases := []struct {
-		label      string
-		err        error
-		expectCode int
-	}{
-		{
-			"TestRespondERRInternalServerError",
-			errors.New("Something wen wrong"),
-			http.StatusInternalServerError,
-		},
-		{
-			"TestRespondERRBadRequest",
-			NewApiError("Invalid body", http.StatusBadRequest),
-			http.StatusBadRequest,
-		},
+func TestRespondErrBadRequest(t *testing.T) {
+	errMsg := "Invalid body"
+	err := NewApiError(errMsg, http.StatusBadRequest)
+	rwm := NewResponseWriterMock()
+	RespondERR(rwm, err)
+	if rwm.statusCode != http.StatusBadRequest {
+		t.Fatalf("Wrong status returned. \n\tExpect: %v \n\tgot: %v\n", http.StatusBadRequest, rwm.statusCode)
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.label, func(t *testing.T) {
-			rwm := NewResponseWriterMock()
-			RespondERR(rwm, tc.err)
-			if rwm.statusCode != tc.expectCode {
-				t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", tc.expectCode, rwm.statusCode)
-			}
-			var response dto.ErrorDto
-			if err := json.Unmarshal(rwm.b, &response); err != nil {
-				t.Fatalf("Error parsing the response that written: %v\n", err)
-			}
+	var response dto.ErrorDto
+	if err := json.Unmarshal(rwm.b, &response); err != nil {
+		t.Fatalf("Err should be nil got: %v", err)
+	}
 
-			if response.Message != tc.err.Error() {
-				t.Fatalf("Wrong message returned. Expect: %v got: %v\n", tc.err.Error(), response.Message)
-			}
-		})
+	if response.Message != errMsg {
+		t.Fatalf("Wrong msg returned. \n\tExpect: %v \n\tgot: %v\n", errMsg, response.Message)
+	}
+}
+
+func TestRespondErrInternalServerError(t *testing.T) {
+	errMsg := "Some crazy error"
+	err := errors.New(errMsg)
+	rwm := NewResponseWriterMock()
+	RespondERR(rwm, err)
+	if rwm.statusCode != http.StatusInternalServerError {
+		t.Fatalf("Wrong status returned. \n\tExpect: %v \n\tgot: %v\n", http.StatusInternalServerError, rwm.statusCode)
+	}
+
+	var response dto.ErrorDto
+	if err := json.Unmarshal(rwm.b, &response); err != nil {
+		t.Fatalf("Err should be nil got: %v", err)
+	}
+
+	if response.Message != errMsg {
+		t.Fatalf("Wrong msg returned. \n\tExpect: %v \n\tgot: %v\n", errMsg, response.Message)
 	}
 }
