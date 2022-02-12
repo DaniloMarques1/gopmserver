@@ -14,6 +14,7 @@ type PasswordService interface {
 	FindByKey(masterId, key string) (*dto.PasswordResponseDto, error)
 	Keys(masterId string) (*dto.PasswordKeysDto, error)
 	RemoveByKey(masterId, key string) error
+	UpdateByKey(masterId string, pwdDto *dto.PasswordUpdateRequestDto) error
 }
 
 type PasswordServiceImpl struct {
@@ -73,7 +74,7 @@ func (ps *PasswordServiceImpl) RemoveByKey(masterId, key string) error {
 	return nil
 }
 
-func (ps *PasswordService) UpdateByKey(masterId string, pwdDto *dto.PasswordUpdateRequestDto) error {
+func (ps *PasswordServiceImpl) UpdateByKey(masterId string, pwdDto *dto.PasswordUpdateRequestDto) error {
 	password, err := ps.pwdRepository.FindByKey(masterId, pwdDto.Key)
 	if err != nil {
 		return err
