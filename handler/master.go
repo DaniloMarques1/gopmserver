@@ -12,13 +12,14 @@ import (
 )
 
 type MasterHandler struct {
-	masterService *service.MasterService
+	masterService service.MasterService
 }
 
-func NewMasterHandler(masterService *service.MasterService) *MasterHandler {
+func NewMasterHandler(masterService service.MasterService) *MasterHandler {
 	return &MasterHandler{masterService: masterService}
 }
 
+// creates a new master
 func (mh *MasterHandler) Save(w http.ResponseWriter, r *http.Request) {
 	var masterDto dto.MasterRequestDto
 	if err := json.NewDecoder(r.Body).Decode(&masterDto); err != nil {

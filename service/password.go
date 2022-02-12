@@ -9,15 +9,22 @@ import (
 	"github.com/google/uuid"
 )
 
-type PasswordService struct {
+type PasswordService interface {
+	Save(masterId string, pwdDto *dto.PasswordRequestDto) error
+	FindByKey(masterId, key string) (*dto.PasswordResponseDto, error)
+	Keys(masterId string) (*dto.PasswordKeysDto, error)
+	RemoveByKey(masterId, key string) error
+}
+
+type PasswordServiceImpl struct {
 	pwdRepository model.PasswordInterface
 }
 
-func NewPasswordService(pwdRepository model.PasswordInterface) *PasswordService {
-	return &PasswordService{pwdRepository: pwdRepository}
+func NewPasswordService(pwdRepository model.PasswordInterface) *PasswordServiceImpl {
+	return &PasswordServiceImpl{pwdRepository: pwdRepository}
 }
 
-func (ps *PasswordService) Save(masterId string, pwdDto dto.PasswordRequestDto) error {
+func (ps *PasswordServiceImpl) Save(masterId string, pwdDto *dto.PasswordRequestDto) error {
 	if _, err := ps.pwdRepository.FindByKey(masterId, pwdDto.Key); err == nil {
 		return util.NewApiError("Key already in use", http.StatusBadRequest)
 	}
@@ -35,7 +42,7 @@ func (ps *PasswordService) Save(masterId string, pwdDto dto.PasswordRequestDto) 
 	return nil
 }
 
-func (ps *PasswordService) FindByKey(masterId, key string) (*dto.PasswordResponseDto, error) {
+func (ps *PasswordServiceImpl) FindByKey(masterId, key string) (*dto.PasswordResponseDto, error) {
 	password, err := ps.pwdRepository.FindByKey(masterId, key)
 	if err != nil {
 		return nil, err
@@ -47,7 +54,7 @@ func (ps *PasswordService) FindByKey(masterId, key string) (*dto.PasswordRespons
 	}, nil
 }
 
-func (ps *PasswordService) Keys(masterId string) (*dto.PasswordKeysDto, error) {
+func (ps *PasswordServiceImpl) Keys(masterId string) (*dto.PasswordKeysDto, error) {
 	keys, err := ps.pwdRepository.Keys(masterId)
 	if err != nil {
 		return nil, err
@@ -55,7 +62,7 @@ func (ps *PasswordService) Keys(masterId string) (*dto.PasswordKeysDto, error) {
 	return &dto.PasswordKeysDto{Keys: keys}, nil
 }
 
-func (ps *PasswordService) RemoveByKey(masterId, key string) error {
+func (ps *PasswordServiceImpl) RemoveByKey(masterId, key string) error {
 	password, err := ps.pwdRepository.FindByKey(masterId, key)
 	if err != nil {
 		return err

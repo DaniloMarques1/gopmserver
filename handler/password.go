@@ -12,10 +12,10 @@ import (
 )
 
 type PasswordHandler struct {
-	pwdService *service.PasswordService
+	pwdService service.PasswordService
 }
 
-func NewPasswordHandler(pwdService *service.PasswordService) *PasswordHandler {
+func NewPasswordHandler(pwdService service.PasswordService) *PasswordHandler {
 	return &PasswordHandler{pwdService: pwdService}
 }
 
@@ -26,7 +26,7 @@ func (ph *PasswordHandler) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	masterId := r.Header.Get("userId")
-	if err := ph.pwdService.Save(masterId, pwdDto); err != nil {
+	if err := ph.pwdService.Save(masterId, &pwdDto); err != nil {
 		util.RespondERR(w, err)
 		return
 	}
