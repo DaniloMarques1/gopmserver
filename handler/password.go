@@ -22,7 +22,7 @@ func NewPasswordHandler(pwdService service.PasswordService) *PasswordHandler {
 func (ph *PasswordHandler) Save(w http.ResponseWriter, r *http.Request) {
 	var pwdDto dto.PasswordRequestDto
 	if err := json.NewDecoder(r.Body).Decode(&pwdDto); err != nil {
-		util.RespondJSON(w, "Invalid json", http.StatusBadRequest)
+		util.RespondJSON(w, "Invalid body", http.StatusBadRequest)
 		return
 	}
 	masterId := r.Header.Get("userId")
@@ -69,7 +69,7 @@ func (ph *PasswordHandler) Keys(w http.ResponseWriter, r *http.Request) {
 func (ph *PasswordHandler) UpdateByKey(w http.ResponseWriter, r *http.Request) {
 	var pwdDto dto.PasswordUpdateRequestDto
 	if err := json.NewDecoder(r.Body).Decode(&pwdDto); err != nil {
-		util.RespondJSON(w, "Invalid json", http.StatusBadRequest)
+		util.RespondJSON(w, "Invalid body", http.StatusBadRequest)
 		return
 	}
 	masterId := r.Header.Get("userId")

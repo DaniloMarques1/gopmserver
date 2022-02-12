@@ -30,124 +30,93 @@ func (msm *MasterServiceMock) Session(masterDto *dto.SessionRequestDto) (*dto.Se
 }
 
 func TestSaveMaster(t *testing.T) {
-	masterHandler := NewMasterHandler(&MasterServiceMock{})
-	body := `{"email": "test@mail.com", "pwd": "secret"}`
-	request, err := http.NewRequest(http.MethodPost, "/master", strings.NewReader(body))
-	if err != nil {
-		t.Fatalf("Error creating the request. Got: %v\n", err)
+	cases := []struct {
+		label           string
+		body            string
+		expectedStatus  int
+		expectedMessage string
+	}{
+		{"TestSaveMaster", `{"email": "test@mail.com", "pwd": "secret"}`, http.StatusCreated, ""},
+		{"TestSaveMasterErrEmailAlreadyInUse", `{"email": "fitz@mail.com", "pwd": "secret"}`, http.StatusBadRequest, "E-mail already in use"},
+		{"TestSaveMasterErrInvalidBody", `invalidbody`, http.StatusBadRequest, "Invalid body"},
 	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(masterHandler.Save)
-	handler.ServeHTTP(rr, request)
-	if rr.Code != http.StatusCreated {
-		t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", http.StatusCreated, rr.Code)
-	}
-}
 
-func TestSaveMasterErrEmailAlreadyInUse(t *testing.T) {
-	masterHandler := NewMasterHandler(&MasterServiceMock{})
-	body := `{"email": "fitz@mail.com", "pwd": "secret"}`
-	request, err := http.NewRequest(http.MethodPost, "/master", strings.NewReader(body))
-	if err != nil {
-		t.Fatalf("Error creating the request. Got: %v\n", err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(masterHandler.Save)
-	handler.ServeHTTP(rr, request)
-	if rr.Code != http.StatusBadRequest {
-		t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", http.StatusBadRequest, rr.Code)
-	}
-}
+	for _, tc := range cases {
+		t.Run(tc.label, func(t *testing.T) {
+			masterHandler := NewMasterHandler(&MasterServiceMock{})
+			request, err := http.NewRequest(http.MethodPost, "/master", strings.NewReader(tc.body))
+			if err != nil {
+				t.Fatalf("Error creating the request. Got: %v\n", err)
+			}
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(masterHandler.Save)
+			handler.ServeHTTP(rr, request)
+			if rr.Code != tc.expectedStatus {
+				t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", tc.expectedStatus, rr.Code)
+			}
 
-func TestSaveMasterErrInvalidBody(t *testing.T) {
-	masterHandler := NewMasterHandler(&MasterServiceMock{})
-	body := `thisisnotavalidjson`
-	request, err := http.NewRequest(http.MethodPost, "/master", strings.NewReader(body))
-	if err != nil {
-		t.Fatalf("Error creating the request. Got: %v\n", err)
-	}
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(masterHandler.Save)
-	handler.ServeHTTP(rr, request)
-	if rr.Code != http.StatusBadRequest {
-		t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", http.StatusBadRequest, rr.Code)
+			if tc.expectedMessage != "" {
+				var response dto.ErrorDto
+				if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
+					t.Fatalf("Expect error to be nil when parsing response: %v\n", err)
+				}
+
+				if response.Message != tc.expectedMessage {
+					t.Fatalf("Wrong message returned. Expected: %v got: %v\n", tc.expectedMessage, response.Message)
+				}
+			}
+
+		})
 	}
 }
 
 func TestSessionMaster(t *testing.T) {
-	masterHandler := NewMasterHandler(&MasterServiceMock{})
-	body := `{"email": "fitz@mail.com", "pwd": "123456"}`
-	request, err := http.NewRequest(http.MethodPost, "/session", strings.NewReader(body))
-	if err != nil {
-		t.Fatalf("Expected error to be nil instead got: %v\n", err)
+	cases := []struct {
+		label           string
+		body            string
+		expectedStatus  int
+		expectedMessage string
+	}{
+		{"TestSessionMaster", `{"email": "test@mail.com", "pwd": "123456"}`, http.StatusOK, "token"},
+		{"TestSessionMasterErrInvalidPwd", `{"email": "test@mail.com", "pwd": "invalid"}`, http.StatusUnauthorized, "Invalid password"},
+		{"TestSessionMasterErrInvalidBody", `invalidbody`, http.StatusBadRequest, "Invalid body"},
 	}
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(masterHandler.Session)
-	handler.ServeHTTP(rr, request)
+	for _, tc := range cases {
+		t.Run(tc.label, func(t *testing.T) {
+			masterHandler := NewMasterHandler(&MasterServiceMock{})
+			request, err := http.NewRequest(http.MethodPost, "/master", strings.NewReader(tc.body))
+			if err != nil {
+				t.Fatalf("Error creating the request. Got: %v\n", err)
+			}
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(masterHandler.Session)
+			handler.ServeHTTP(rr, request)
+			if rr.Code != tc.expectedStatus {
+				t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", tc.expectedStatus, rr.Code)
+			}
 
-	if rr.Code != http.StatusOK {
-		t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", http.StatusOK, rr.Code)
-	}
+			if rr.Code == http.StatusOK {
+				var response dto.SessionResponseDto
+				if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
+					t.Fatalf("Expect error to be nil when parsing response: %v\n", err)
+				}
 
-	var response dto.SessionResponseDto
-	if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
-		t.Fatalf("Expect err to be nil when parsing response. Instead got: %v\n", err)
-	}
+				if response.Token != tc.expectedMessage {
+					t.Fatalf("Wrong message returned. Expected: %v got: %v\n", tc.expectedMessage, response.Token)
+				}
 
-	if response.Token != "token" {
-		t.Fatalf("Wrong token returned: %v\n", response.Token)
-	}
-}
+			} else {
+				var response dto.ErrorDto
+				if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
+					t.Fatalf("Expect error to be nil when parsing response: %v\n", err)
+				}
 
-func TestSessionMasterErrInvalidPwd(t *testing.T) {
-	masterHandler := NewMasterHandler(&MasterServiceMock{})
-	body := `{"email": "fitz@mail.com", "pwd": "wrongpassword"}`
-	request, err := http.NewRequest(http.MethodPost, "/session", strings.NewReader(body))
-	if err != nil {
-		t.Fatalf("Expected error to be nil instead got: %v\n", err)
-	}
+				if response.Message != tc.expectedMessage {
+					t.Fatalf("Wrong message returned. Expected: %v got: %v\n", tc.expectedMessage, response.Message)
+				}
+			}
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(masterHandler.Session)
-	handler.ServeHTTP(rr, request)
-
-	if rr.Code != http.StatusUnauthorized {
-		t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", http.StatusUnauthorized, rr.Code)
-	}
-
-	var response dto.ErrorDto
-	if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
-		t.Fatalf("Expect err to be nil when parsing response. Instead got: %v\n", err)
-	}
-
-	if response.Message != "Invalid password" {
-		t.Fatalf("Wrong message returned: %v\n", response.Message)
-	}
-}
-
-func TestSessionMasterErrInvalidJson(t *testing.T ) {
-	masterHandler := NewMasterHandler(&MasterServiceMock{})
-	body := `invalidjson`
-	request, err := http.NewRequest(http.MethodPost, "/session", strings.NewReader(body))
-	if err != nil {
-		t.Fatalf("Expected error to be nil instead got: %v\n", err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(masterHandler.Session)
-	handler.ServeHTTP(rr, request)
-
-	if rr.Code != http.StatusBadRequest {
-		t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", http.StatusBadRequest, rr.Code)
-	}
-
-	var response dto.ErrorDto
-	if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
-		t.Fatalf("Expect err to be nil when parsing response. Instead got: %v\n", err)
-	}
-
-	if response.Message != "Invalid body" {
-		t.Fatalf("Wrong message returned: %v\n", response.Message)
+		})
 	}
 }
