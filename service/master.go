@@ -12,15 +12,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type MasterService struct {
+type MasterService interface {
+	Save(masterDto *dto.MasterRequestDto) error
+	Session(sessionDto *dto.SessionRequestDto) (*dto.SessionResponseDto, error)
+}
+
+type MasterServiceImpl struct {
 	masterRepository model.MasterRepository
 }
 
-func NewMasterService(repository model.MasterRepository) *MasterService {
-	return &MasterService{masterRepository: repository}
+func NewMasterService(repository model.MasterRepository) *MasterServiceImpl {
+	return &MasterServiceImpl{masterRepository: repository}
 }
 
-func (ms *MasterService) Save(masterDto *dto.MasterRequestDto) error {
+func (ms *MasterServiceImpl) Save(masterDto *dto.MasterRequestDto) error {
 	if _, err := ms.masterRepository.FindByEmail(masterDto.Email); err == nil {
 		return util.NewApiError("E-mail already in use", http.StatusBadRequest)
 	}
@@ -41,7 +46,7 @@ func (ms *MasterService) Save(masterDto *dto.MasterRequestDto) error {
 	return nil
 }
 
-func (ms *MasterService) Session(sessionDto *dto.SessionRequestDto) (*dto.SessionResponseDto, error) {
+func (ms *MasterServiceImpl) Session(sessionDto *dto.SessionRequestDto) (*dto.SessionResponseDto, error) {
 	master, err := ms.masterRepository.FindByEmail(sessionDto.Email)
 	if err != nil {
 		return nil, err

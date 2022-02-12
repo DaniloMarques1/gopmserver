@@ -91,7 +91,7 @@ func middleware(next http.Handler) http.Handler {
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, err := util.GetTokenFromHeader(r.Header.Get("Authorization"))
+		token, err := util.GetTokenFromBearerString(r.Header.Get("Authorization"))
 		if err != nil {
 			util.RespondERR(w, err)
 			return
