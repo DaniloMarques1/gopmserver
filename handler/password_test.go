@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/danilomarques1/gopmserver/dto"
 	"github.com/danilomarques1/gopmserver/util"
+	"github.com/go-chi/chi/v5"
 )
 
 type PasswordServiceMock struct {
@@ -22,7 +24,11 @@ func (psm *PasswordServiceMock) Save(masterId string, pwdDto *dto.PasswordReques
 }
 
 func (psm *PasswordServiceMock) FindByKey(masterId, key string) (*dto.PasswordResponseDto, error) {
-	return nil, nil
+	if key == "github" {
+		return nil, util.NewApiError("No password found with the given key", http.StatusNotFound)
+	}
+
+	return &dto.PasswordResponseDto{Id: "1", Key: key, Pwd: "123456"}, nil
 }
 
 func (psm *PasswordServiceMock) Keys(masterId string) (*dto.PasswordKeysDto, error) {
@@ -37,6 +43,8 @@ func (psm *PasswordServiceMock) UpdateByKey(masterId string, pwdDto *dto.Passwor
 	return nil
 }
 
+const USERID = "1"
+
 func TestPasswordSave(t *testing.T) {
 	cases := []struct {
 		label           string
@@ -49,17 +57,16 @@ func TestPasswordSave(t *testing.T) {
 		{"TestPasswordSaveErrInvalidBody", `invalidbody`, http.StatusBadRequest, "Invalid body"},
 	}
 
+	router := chi.NewRouter()
 	for _, tc := range cases {
 		t.Run(tc.label, func(t *testing.T) {
 			pwdHandler := NewPasswordHandler(&PasswordServiceMock{})
-			request, err := http.NewRequest(http.MethodPost, "/password", strings.NewReader(tc.body))
-			if err != nil {
-				t.Fatalf("Expect err to be nil. Instead got: %v\n", err)
-			}
+			request := httptest.NewRequest(http.MethodPost, "/password", strings.NewReader(tc.body))
+			request.Header.Add("userId", USERID)
 
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(pwdHandler.Save)
-			handler.ServeHTTP(rr, request)
+			router.Post("/password", pwdHandler.Save)
+			router.ServeHTTP(rr, request)
 
 			if rr.Code != tc.expectedStatus {
 				t.Fatalf("Wrong status returned. Expect: %v got: %v\n", tc.expectedStatus, rr.Code)
@@ -75,6 +82,55 @@ func TestPasswordSave(t *testing.T) {
 				}
 			}
 
+		})
+	}
+}
+
+func TestFindPassword(t *testing.T) {
+	cases := []struct {
+		label           string
+		key             string
+		expectedStatus  int
+		expectedMessage string
+	}{
+		{"TestFindPassword", "orkut", http.StatusOK, "123456"},
+		{"TestFindPasswordErrKeyNotFound", "github", http.StatusNotFound, "No password found with the given key"},
+	}
+
+	router := chi.NewRouter()
+	for _, tc := range cases {
+		t.Run(tc.label, func(t *testing.T) {
+			pwdHandler := NewPasswordHandler(&PasswordServiceMock{})
+			url := fmt.Sprintf("/password/%v", tc.key)
+			request := httptest.NewRequest(http.MethodGet, url, nil)
+			request.Header.Add("userId", USERID)
+
+			rr := httptest.NewRecorder()
+			router.Get("/password/{key}", pwdHandler.FindByKey)
+			router.ServeHTTP(rr, request)
+
+			if rr.Code != tc.expectedStatus {
+				t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", tc.expectedStatus, rr.Code)
+			}
+
+			if rr.Code == http.StatusOK {
+				var response dto.PasswordResponseDto
+				if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
+					t.Fatalf("Expect err to be nil. Instead got: %v\n", err)
+				}
+				if response.Pwd != tc.expectedMessage {
+					t.Fatalf("Wrong password returned. Epxected: %v got: %v\n", tc.expectedMessage, response.Pwd)
+				}
+			} else {
+				var response dto.ErrorDto
+				if err := json.Unmarshal(rr.Body.Bytes(), &response); err != nil {
+					t.Fatalf("Expect err to be nil. Instead got: %v\n", err)
+				}
+
+				if response.Message != tc.expectedMessage {
+					t.Fatalf("Wrong message returned. Epxected: %v got: %v\n", tc.expectedMessage, response.Message)
+				}
+			}
 		})
 	}
 }

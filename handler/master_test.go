@@ -9,6 +9,7 @@ import (
 
 	"github.com/danilomarques1/gopmserver/dto"
 	"github.com/danilomarques1/gopmserver/util"
+	"github.com/go-chi/chi/v5"
 )
 
 type MasterServiceMock struct {
@@ -41,16 +42,16 @@ func TestSaveMaster(t *testing.T) {
 		{"TestSaveMasterErrInvalidBody", `invalidbody`, http.StatusBadRequest, "Invalid body"},
 	}
 
+	router := chi.NewRouter()
 	for _, tc := range cases {
 		t.Run(tc.label, func(t *testing.T) {
 			masterHandler := NewMasterHandler(&MasterServiceMock{})
-			request, err := http.NewRequest(http.MethodPost, "/master", strings.NewReader(tc.body))
-			if err != nil {
-				t.Fatalf("Error creating the request. Got: %v\n", err)
-			}
+			request := httptest.NewRequest(http.MethodPost, "/master", strings.NewReader(tc.body))
+
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(masterHandler.Save)
-			handler.ServeHTTP(rr, request)
+			router.Post("/master", masterHandler.Save)
+			router.ServeHTTP(rr, request)
+
 			if rr.Code != tc.expectedStatus {
 				t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", tc.expectedStatus, rr.Code)
 			}
@@ -82,16 +83,16 @@ func TestSessionMaster(t *testing.T) {
 		{"TestSessionMasterErrInvalidBody", `invalidbody`, http.StatusBadRequest, "Invalid body"},
 	}
 
+	router := chi.NewRouter()
 	for _, tc := range cases {
 		t.Run(tc.label, func(t *testing.T) {
 			masterHandler := NewMasterHandler(&MasterServiceMock{})
-			request, err := http.NewRequest(http.MethodPost, "/master", strings.NewReader(tc.body))
-			if err != nil {
-				t.Fatalf("Error creating the request. Got: %v\n", err)
-			}
+			request := httptest.NewRequest(http.MethodPost, "/session", strings.NewReader(tc.body))
+
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(masterHandler.Session)
-			handler.ServeHTTP(rr, request)
+			router.Post("/session", masterHandler.Session)
+			router.ServeHTTP(rr, request)
+
 			if rr.Code != tc.expectedStatus {
 				t.Fatalf("Wrong status code returned. Expect: %v got: %v\n", tc.expectedStatus, rr.Code)
 			}

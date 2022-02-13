@@ -35,7 +35,11 @@ func TestGenTokenErrorNoId(t *testing.T) {
 func TestVerifyToken(t *testing.T) {
 	t.Setenv("JWT_KEY", "somekey")
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjEiLCJleHAiOjE2NDQ2MjY5NzEsImlzcyI6ImdvcG1zZXJ2ZXIifQ.FUfGmYbv1GT6Kr_sbaJNWgX8MRtqbK43KyjQXCW7jfk"
+	token, err := GenToken("1")
+	if err != nil {
+		t.Fatalf("Nil should have been nil instead got: %v\n", err)
+	}
+
 	userId, err := VerifyToken(token)
 	expectedId := "1"
 	if err != nil {
@@ -58,6 +62,19 @@ func TestVerifyTokenError(t *testing.T) {
 		t.Fatalf("Expected an empty id instead got: %v\n", userId)
 	}
 
+}
+
+func TestVerifyTokenErrorExpired(t *testing.T) {
+	t.Setenv("JWT_KEY", "somekey")
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjEiLCJleHAiOjE2NDQ2MjY5NzEsImlzcyI6ImdvcG1zZXJ2ZXIifQ.FUfGmYbv1GT6Kr_sbaJNWgX8MRtqbK43KyjQXCW7jfk"
+	userId, err := VerifyToken(token)
+	if err == nil {
+		t.Fatal("Nil should not be nil")
+	}
+
+	if len(userId) > 0 {
+		t.Fatalf("Expected an empty id instead got: %v\n", userId)
+	}
 }
 
 func TestGetTokenFromBearerString(t *testing.T) {
