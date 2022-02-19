@@ -67,7 +67,7 @@ func (prm *passwordRepositoryMock) UpdateByKey(masterId string, password *model.
 }
 
 func TestSavePassword(t *testing.T) {
-	cases := []struct{
+	cases := []struct {
 		label         string
 		pwdDto        *dto.PasswordRequestDto
 		masterId      string
