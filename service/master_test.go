@@ -59,8 +59,8 @@ func TestSessionMaster(t *testing.T) {
 		err        bool
 	}{
 		{"TestSessionMaster", &dto.SessionRequestDto{Email: "test@mail.com", Pwd: "123456"}, false},
+		{"TestSessionMaster", &dto.SessionRequestDto{Email: "fitz@mail.com", Pwd: "123456"}, true},
 	}
-
 	for _, tc := range cases {
 		t.Run(tc.label, func(t *testing.T) {
 			masterService := NewMasterService(&masterRepositoryMock{})
