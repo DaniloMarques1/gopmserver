@@ -14,7 +14,7 @@ type passwordRepositoryMock struct {
 }
 
 const (
-	PWD_ID = "1"
+	PWD_ID    = "1"
 	MASTER_ID = "2"
 )
 
@@ -114,7 +114,7 @@ func TestFindByKey(t *testing.T) {
 			if returnedErr != tc.returnedError {
 				t.Fatalf("Should return error: %v. Instead got: %v\n", tc.returnedError, err)
 			}
-			
+
 			if tc.response != nil {
 				if response == nil {
 					t.Fatal("Response should not be nil\n")
@@ -147,7 +147,7 @@ func TestKeys(t *testing.T) {
 			if returnedErr != tc.returnedError {
 				t.Fatalf("Should return error: %v. Instead got: %v\n", tc.returnedError, err)
 			}
-			
+
 			if tc.response != nil {
 				if response == nil {
 					t.Fatal("Response should not be nil\n")
